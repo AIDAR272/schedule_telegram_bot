@@ -1,7 +1,7 @@
 import json
 from typing import List
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -57,7 +57,7 @@ async def cpu(update, context):
             f"I only can help you with the class schedule."
         )
     else:
-        weekday = datetime.today().weekday()
+        weekday = datetime.now(timezone(timedelta(hours=6))).weekday()
         if "tomorrow" in text:
             await update.message.reply_text(await get_classes_for_day(weekday + 1, "Tomorrow"))
             return
@@ -112,23 +112,23 @@ async def cpu(update, context):
 
 
 async def is_next_class(time:List[int]) -> bool:
-    now = datetime.now()
-    actual_time = [now.hour, now.minute]
-    if time[0] > actual_time[0] or time[0] == actual_time[0] and time[1] >= actual_time[1]:
+    now = datetime.now(timezone(timedelta(hours=6)))
+    current_time = [now.hour, now.minute]
+    if time[0] > current_time[0] or time[0] == current_time[0] and time[1] >= current_time[1]:
         return True
     return False
 
 
 async def time_left(time: List[int]):
-    now = datetime.now()
-    actual_time = [now.hour, now.minute]
+    now = datetime.now(timezone(timedelta(hours=6)))
+    current_time = [now.hour, now.minute]
     in_what_time = []
-    if time[1] < actual_time[1]:
-        in_what_time.append(60 + time[1] - actual_time[1])
+    if time[1] < current_time[1]:
+        in_what_time.append(60 + time[1] - current_time[1])
         time[0] -= 1
     else:
-        in_what_time.append(time[1] - actual_time[1])
-    in_what_time.append(time[0] - actual_time[0])
+        in_what_time.append(time[1] - current_time[1])
+    in_what_time.append(time[0] - current_time[0])
 
     return in_what_time[::-1]
 
