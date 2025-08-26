@@ -1,0 +1,27 @@
+{
+  "0" : {
+      "9:00" : "Cultural Studies",
+      "11:00" : "Programming",
+      "13:30" : "Kyrgyz Languages",
+      "15:30" : "Calculus"
+    },
+  "1" : {
+      "13:30" : "Kyrgyz Languages",
+      "15:30" : "Pysics"
+    },
+  "2" : {
+      "9:00" : "COOP",
+      "11:00" : "Programming",
+      "13:30" : "Kyrgyz Languages",
+      "15:30" : "Calculus"
+    },
+  "3" : {
+      "13:30" : "Kyrgyz Languages",
+      "15:30" : "Pysics"
+    },
+  "4" : {
+      "9:00" : "Pysics",
+      "11:00" : "Programming",
+      "15:30" : "Calculus"
+    }
+}
