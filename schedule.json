@@ -1,27 +1,28 @@
 {
   "0" : {
-      "9:00" : "Cultural Studies",
-      "11:00" : "Programming",
-      "13:30" : "Kyrgyz Languages",
-      "15:30" : "Calculus"
+      "9:00" : "Ecology in RED",
+      "13:30" : "Discrete Mathematics in YELLOW"
     },
   "1" : {
-      "13:30" : "Kyrgyz Languages",
-      "15:30" : "Pysics"
+      "9:00" :  "Discrete Mathematics in RED",
+      "15:30" : "Philosophy in YELLOW"
     },
   "2" : {
-      "9:00" : "COOP",
-      "11:00" : "Programming",
-      "13:30" : "Kyrgyz Languages",
-      "15:30" : "Calculus"
+      "9:00" : "Ecology in RED",
+      "13:00" : "Web & IT in RED",
+      "15:00" : "Philosophy in YELLOW",
+      "17:30" : "Programming in 111"
     },
   "3" : {
-      "13:30" : "Kyrgyz Languages",
-      "15:30" : "Pysics"
+      "9:00" :  "Discrete Mathematics in PURPLE",
+      "11:00" : "Programming in PURPLE",
+      "13:30" : "Web and IT in 111",
+      "15:30" : "Philosophy in YELLOW"
     },
   "4" : {
-      "9:00" : "Pysics",
-      "11:00" : "Programming",
-      "15:30" : "Calculus"
+      "9:00" : "Ecology in RED",
+      "13:30" : "Web and IT in WHITE",
+      "15:30" : "Programming in WHITE",
+      "17:30" : "PE"
     }
 }
