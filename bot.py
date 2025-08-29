@@ -1,5 +1,6 @@
 import json
 from typing import List
+from telegram import Bot
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from datetime import datetime, timezone, timedelta
 import os
@@ -9,7 +10,8 @@ load_dotenv()
 from greetings_list import greetings
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
-
+CHAT_ID = os.getenv("CHAT_ID")
+bot = Bot(token=TOKEN)
 
 async def start(update, context):
     await update.message.reply_text("Hello, my name is Kevin. How can i help you?")
@@ -160,11 +162,31 @@ async def is_thanks(text: str) -> bool:
     return False
 
 
+async def notify_before_class(context):
+    with open("schedule.json", 'r') as f:
+        schedule = json.load(f)
+
+    now = datetime.now(timezone(timedelta(hours=6)))
+    weekday = now.weekday()
+    for key, value in schedule[str(weekday)].items():
+        class_hour, class_minute = map(int, key.split(":"))
+        class_dt = now.replace(hour=class_hour, minute=class_minute, second=0, microsecond=0)
+
+        diff = (class_dt - now).total_seconds()
+        if 540 <= diff < 600:
+            await context.bot.send_message(
+                chat_id=CHAT_ID,
+                text=f"Boss, you have {value} in 10 minutes"
+            )
+
+
 def main():
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, cpu))
+
+    app.job_queue.run_repeating(notify_before_class, interval=60, first=0)
     print("Bot is running")
     app.run_polling()
 
