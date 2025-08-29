@@ -56,6 +56,7 @@ async def cpu(update, context):
     text = text.lower()
     if await is_greeting(text):
         await update.message.reply_text(f"What's up, Boss!\n\n")
+        return
 
     if await is_thanks(text):
         await update.message.reply_text(f"Sure, It's my job 😎!")
@@ -146,7 +147,7 @@ async def time_left(time: List[int]):
 
 async def is_greeting(text: str) -> bool:
     for word in greetings:
-        if word in text:
+        if word == text:
             return True
 
     return False
