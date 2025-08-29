@@ -6,6 +6,8 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+from greetings_list import greetings
+
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 
@@ -15,9 +17,11 @@ async def start(update, context):
 
 async def help_command(update, context):
     await update.message.reply_text(
-        f"You can use these commands:\n"
-        f"/start - Welcome message\n"
-        f"/help - Show help menu"
+        f"Try asking questions like:\n"
+        f"What class?\n"
+        f"Which class is next?\n"
+        f"Today's classes?\n"
+        f"What lessons do i have for tomorrow?\n"
     )
 
 
@@ -50,11 +54,18 @@ async def get_classes_for_day(weekday:int, day:str):
 async def cpu(update, context):
     text = update.message.text
     text = text.lower()
+    if await is_greeting(text):
+        await update.message.reply_text(f"What's up, Boss!\n\n")
+
+    if await is_thanks(text):
+        await update.message.reply_text(f"Sure, It's my job 😎!")
+        return
+
     if "lesson" not in text and "class" not in text:
         await update.message.reply_text(
             f"Sorry,\n"
-            f"I don't know what you mean by {text}.\n"
-            f"I only can help you with the class schedule."
+            f"I don't know what you mean by {text}.\n\n"
+            f"Try typing: /help - to see my full potential!"
         )
     else:
         weekday = datetime.now(timezone(timedelta(hours=6))).weekday()
@@ -131,6 +142,21 @@ async def time_left(time: List[int]):
     in_what_time.append(time[0] - current_time[0])
 
     return in_what_time[::-1]
+
+
+async def is_greeting(text: str) -> bool:
+    for word in greetings:
+        if word in text:
+            return True
+
+    return False
+
+
+async def is_thanks(text: str) -> bool:
+    if "thanks" in text or "thank you" in text:
+        return True
+
+    return False
 
 
 def main():
