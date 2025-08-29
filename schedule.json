@@ -11,18 +11,18 @@
       "9:00" : "Ecology in RED",
       "13:00" : "Web & IT in RED",
       "15:00" : "Philosophy in YELLOW",
-      "17:30" : "Programming in 111"
+      "17:15" : "Programming in LAB"
     },
   "3" : {
       "9:00" :  "Discrete Mathematics in PURPLE",
-      "11:00" : "Programming in PURPLE",
-      "13:30" : "Web and IT in 111",
+      "11:00" : "Programming in LAB",
+      "13:30" : "Web & IT in LAB",
       "15:30" : "Philosophy in YELLOW"
     },
   "4" : {
-      "9:00" : "Ecology in RED",
-      "13:30" : "Web and IT in WHITE",
-      "15:30" : "Programming in WHITE",
+      "9:00" : "Programming in RED",
+      "11:00" : "Ecology in YELLOW",
+      "13:30" : "Web & IT in WHITE",
       "17:30" : "PE"
     }
 }
