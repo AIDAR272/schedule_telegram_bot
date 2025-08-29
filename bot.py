@@ -12,12 +12,12 @@ TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 
 async def start(update, context):
-    await update.message.reply_text("Hello my name is Kevin. How can i help you?")
+    await update.message.reply_text("Hello, my name is Kevin. How can i help you?")
 
 
 async def help_command(update, context):
     await update.message.reply_text(
-        f"Try asking questions like:\n"
+        f"I can answer questions regarding your schedule like:\n"
         f"What class?\n"
         f"Which class is next?\n"
         f"Today's classes?\n"
@@ -41,6 +41,9 @@ async def get_end_of_class(time:List[int], next_needed: bool):
 
 async def get_classes_for_day(weekday:int, day:str):
     weekday = str(weekday)
+    if weekday == '5' or weekday == '6':
+        return f"You have no classes, Boss"
+
     with open("schedule.json", 'r') as f:
         schedule = json.load(f)
         schedule = schedule[weekday]
@@ -64,9 +67,8 @@ async def cpu(update, context):
 
     if "lesson" not in text and "class" not in text:
         await update.message.reply_text(
-            f"Sorry,\n"
             f"I don't know what you mean by {text}.\n\n"
-            f"Try typing: /help - to see my full potential!"
+            f"Try typing: /help - to see what i know!"
         )
     else:
         weekday = datetime.now(timezone(timedelta(hours=6))).weekday()
@@ -85,8 +87,7 @@ async def cpu(update, context):
 
         weekday = str(weekday)
         if weekday == '5' or weekday == '6':
-            await update.message.reply_text(f"You have no classes today.\n"
-                                            f"Enjoy your well deserved rest, Boss")
+            await update.message.reply_text(f"You have no classes, Boss")
             return
 
         with open("schedule.json", 'r') as f:
@@ -111,8 +112,7 @@ async def cpu(update, context):
 
 
             if subject == '':
-                await update.message.reply_text(f"You have no other classes for today.\n"
-                                                f"Enjoy your well deserved rest, Boss")
+                await update.message.reply_text(f"You have no other classes for today, Boss")
                 return
 
             if not flag:
