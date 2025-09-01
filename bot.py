@@ -42,6 +42,7 @@ async def get_end_of_class(time:List[int], next_needed: bool):
 
 
 async def get_classes_for_day(weekday:int, day:str):
+    if weekday == 7: weekday = 0
     weekday = str(weekday)
     if weekday == '5' or weekday == '6':
         return f"You have no classes, Boss"
