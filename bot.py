@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 from greetings_list import greetings
 
-from db import init_db, shutdown_db, db_pool
+from db import init_db, shutdown_db, get_db_pool
 
 
 load_dotenv()
@@ -19,6 +19,7 @@ bot = Bot(token=TOKEN)
 
 async def start(update, context):
     chat_id = update.message.chat_id
+    db_pool = await get_db_pool()
     async with db_pool.acquire() as conn:
         await conn.execute(
             "INSERT INTO users (chat_id) VALUES ($1) ON CONFLICT DO NOTHING",
@@ -46,6 +47,7 @@ async def info(update, context):
 
 
 async def num_users(update, context):
+    db_pool = await get_db_pool()
     async with db_pool.acquire() as conn:
         cnt = await conn.fetchval("SELECT COUNT(*) FROM users")
 
@@ -200,6 +202,7 @@ async def notify_before_class(context):
 
         diff = (class_dt - now).total_seconds()
         if 540 <= diff < 600:
+            db_pool = await get_db_pool()
             async with db_pool.acquire() as conn:
                 rows = await conn.fetch("SELECT chat_id FROM users")
             for user in rows:
