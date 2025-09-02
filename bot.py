@@ -209,10 +209,9 @@ async def notify_before_class(context):
                 )
 
 
-def main():
+async def main():
     app = Application.builder().token(TOKEN).build()
-    app.post_init = init_db
-    app.post_shutdown = shutdown_db
+    await init_db(app)
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("info", info))
@@ -220,9 +219,11 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, cpu))
 
     app.job_queue.run_repeating(notify_before_class, interval=60, first=0)
+    app.post_shutdown = shutdown_db
     print("Bot is running")
     app.run_polling()
 
 
 if __name__ == "__main__":
-    main()
+    import asyncio
+    asyncio.run(main())
