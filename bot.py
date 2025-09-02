@@ -209,9 +209,10 @@ async def notify_before_class(context):
                 )
 
 
-async def main():
+def main():
     app = Application.builder().token(TOKEN).build()
-    await init_db(app)
+    import asyncio
+    asyncio.get_event_loop().run_until_complete(init_db(app))
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("info", info))
@@ -225,5 +226,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
+    main()
