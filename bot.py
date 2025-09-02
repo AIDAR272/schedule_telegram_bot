@@ -1,19 +1,30 @@
 import json
+import os
 from typing import List
 from telegram import Bot
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from datetime import datetime, timezone, timedelta
-import os
 from dotenv import load_dotenv
-load_dotenv()
-
 from greetings_list import greetings
+
+from db import init_db, shutdown_db, db_pool
+
+
+load_dotenv()
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 bot = Bot(token=TOKEN)
 
+
 async def start(update, context):
+    chat_id = update.message.chat_id
+    async with db_pool.acquire() as conn:
+        await conn.execute(
+            "INSERT INTO users (chat_id) VALUES ($1) ON CONFLICT DO NOTHING",
+            chat_id
+        )
+
     await update.message.reply_text("Hello, my name is Kevin. How can i help you?")
 
 
@@ -25,6 +36,20 @@ async def help_command(update, context):
         f"Today's classes?\n"
         f"What lessons do i have for tomorrow?\n"
     )
+
+
+async def info(update, context):
+    await update.message.reply_text(
+        f"This bot was created by Aidar Nasirov.\n"
+        f"Source code: https://github.com/AIDAR272/schedule_telegram_bot"
+    )
+
+
+async def num_users(update, context):
+    async with db_pool.acquire() as conn:
+        cnt = await conn.fetchval("SELECT COUNT(*) FROM users")
+
+    await update.message.reply_text(f"Bot has been used by {cnt} users")
 
 
 async def get_end_of_class(time:List[int], next_needed: bool):
@@ -55,6 +80,43 @@ async def get_classes_for_day(weekday:int, day:str):
             classes.append(f"{value} at {key}")
 
         return "\n\n".join(classes)
+
+
+async def is_next_class(time:List[int]) -> bool:
+    now = datetime.now(timezone(timedelta(hours=6)))
+    current_time = [now.hour, now.minute]
+    if time[0] > current_time[0] or time[0] == current_time[0] and time[1] >= current_time[1]:
+        return True
+    return False
+
+
+async def time_left(time: List[int]):
+    now = datetime.now(timezone(timedelta(hours=6)))
+    current_time = [now.hour, now.minute]
+    in_what_time = []
+    if time[1] < current_time[1]:
+        in_what_time.append(60 + time[1] - current_time[1])
+        time[0] -= 1
+    else:
+        in_what_time.append(time[1] - current_time[1])
+    in_what_time.append(time[0] - current_time[0])
+
+    return in_what_time[::-1]
+
+
+async def is_greeting(text: str) -> bool:
+    for word in greetings:
+        if word == text:
+            return True
+
+    return False
+
+
+async def is_thanks(text: str) -> bool:
+    if "thanks" in text or "thank you" in text:
+        return True
+
+    return False
 
 
 async def cpu(update, context):
@@ -126,43 +188,6 @@ async def cpu(update, context):
             await update.message.reply_text(text)
 
 
-async def is_next_class(time:List[int]) -> bool:
-    now = datetime.now(timezone(timedelta(hours=6)))
-    current_time = [now.hour, now.minute]
-    if time[0] > current_time[0] or time[0] == current_time[0] and time[1] >= current_time[1]:
-        return True
-    return False
-
-
-async def time_left(time: List[int]):
-    now = datetime.now(timezone(timedelta(hours=6)))
-    current_time = [now.hour, now.minute]
-    in_what_time = []
-    if time[1] < current_time[1]:
-        in_what_time.append(60 + time[1] - current_time[1])
-        time[0] -= 1
-    else:
-        in_what_time.append(time[1] - current_time[1])
-    in_what_time.append(time[0] - current_time[0])
-
-    return in_what_time[::-1]
-
-
-async def is_greeting(text: str) -> bool:
-    for word in greetings:
-        if word == text:
-            return True
-
-    return False
-
-
-async def is_thanks(text: str) -> bool:
-    if "thanks" in text or "thank you" in text:
-        return True
-
-    return False
-
-
 async def notify_before_class(context):
     with open("schedule.json", 'r') as f:
         schedule = json.load(f)
@@ -175,21 +200,29 @@ async def notify_before_class(context):
 
         diff = (class_dt - now).total_seconds()
         if 540 <= diff < 600:
-            await context.bot.send_message(
-                chat_id=CHAT_ID,
-                text=f"Boss, you have {value} in 10 minutes"
-            )
+            async with db_pool.acquire() as conn:
+                rows = await conn.fetch("SELECT chat_id FROM users")
+            for user in rows:
+                await context.bot.send_message(
+                    chat_id=user['chat_id'],
+                    text=f"Boss, you have {value} in 10 minutes"
+                )
 
 
 def main():
     app = Application.builder().token(TOKEN).build()
+    app.post_init = init_db
+    app.post_shutdown = shutdown_db
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
+    app.add_handler(CommandHandler("info", info))
+    app.add_handler(CommandHandler("users", num_users))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, cpu))
 
     app.job_queue.run_repeating(notify_before_class, interval=60, first=0)
     print("Bot is running")
     app.run_polling()
+
 
 if __name__ == "__main__":
     main()
