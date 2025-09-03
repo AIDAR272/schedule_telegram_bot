@@ -13,7 +13,7 @@ async def init_db(application):
     db_pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=5)
     async with db_pool.acquire() as conn:
         await conn.execute("""
-            CREATE TABLE IF NOT EXISTS users (
+            CREATE TABLE IF NOT EXISTS Users (
                 user_id BIGINT PRIMARY KEY,
                 first_name TEXT NOT NULL,
                 username TEXT

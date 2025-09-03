@@ -24,7 +24,7 @@ async def start(update, context):
     db_pool = await get_db_pool()
     async with db_pool.acquire() as conn:
         await conn.execute(
-            "INSERT INTO users (user_id, first_name, username) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
+            "INSERT INTO Users (user_id, first_name, username) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
             user_id, first_name, username
         )
 
@@ -51,7 +51,7 @@ async def info(update, context):
 async def num_users(update, context):
     db_pool = await get_db_pool()
     async with db_pool.acquire() as conn:
-        cnt = await conn.fetchval("SELECT COUNT(*) FROM users")
+        cnt = await conn.fetchval("SELECT COUNT(*) FROM Users")
 
     await update.message.reply_text(f"Bot has been used by {cnt} users")
 
@@ -206,7 +206,7 @@ async def notify_before_class(context):
         if 540 <= diff < 600:
             db_pool = await get_db_pool()
             async with db_pool.acquire() as conn:
-                rows = await conn.fetch("SELECT user_id, first_name FROM users")
+                rows = await conn.fetch("SELECT user_id, first_name FROM Users")
             for user in rows:
                 user_id = user['user_id']
                 try:
