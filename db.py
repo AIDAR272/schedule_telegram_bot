@@ -14,8 +14,9 @@ async def init_db(application):
     async with db_pool.acquire() as conn:
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS users (
-                id SERIAL PRIMARY KEY,
-                chat_id BIGINT NOT NULL UNIQUE
+                user_id BIGINT PRIMARY KEY,
+                first_name TEXT NOT NULL,
+                username TEXT
             )
         """)
 

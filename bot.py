@@ -13,17 +13,19 @@ from db import init_db, shutdown_db, get_db_pool
 load_dotenv()
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
-CHAT_ID = os.getenv("CHAT_ID")
 bot = Bot(token=TOKEN)
 
 
 async def start(update, context):
-    chat_id = update.message.chat_id
+    user = update.effective_user
+    user_id = user.id
+    first_name = user.first_name
+    username = user.username if user.username else None
     db_pool = await get_db_pool()
     async with db_pool.acquire() as conn:
         await conn.execute(
-            "INSERT INTO users (chat_id) VALUES ($1) ON CONFLICT DO NOTHING",
-            chat_id
+            "INSERT INTO users (user_id, first_name, username) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
+            user_id, first_name, username
         )
 
     await update.message.reply_text("Hello, my name is Kevin. How can i help you?")
@@ -204,12 +206,18 @@ async def notify_before_class(context):
         if 540 <= diff < 600:
             db_pool = await get_db_pool()
             async with db_pool.acquire() as conn:
-                rows = await conn.fetch("SELECT chat_id FROM users")
+                rows = await conn.fetch("SELECT user_id, first_name FROM users")
             for user in rows:
-                await context.bot.send_message(
-                    chat_id=user['chat_id'],
-                    text=f"Boss, you have {value} in 10 minutes"
-                )
+                user_id = user['user_id']
+                try:
+                    await context.bot.send_message(
+                        chat_id=user_id,
+                        text=f"Boss, you have {value} in 10 minutes"
+                    )
+                except telegram.error.Forbidden:
+                    print(f"User {user['first_name']} has blocked the bot")
+                except Exception as e:
+                    print(f"Error sending message to {user['first_name']}: {e}")
 
 
 def main():
