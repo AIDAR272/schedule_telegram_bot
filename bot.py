@@ -37,7 +37,11 @@ async def help_command(update, context):
         f"What class?\n"
         f"Which class is next?\n"
         f"Today's classes?\n"
-        f"What lessons do i have for tomorrow?\n"
+        f"What lessons do i have for tomorrow?\n\n"
+        
+        f"You can also use these commands:\n"
+        f"/users - how many users are using the bot\n"
+        f"/info - information about the developer"
     )
 
 
@@ -53,7 +57,7 @@ async def num_users(update, context):
     async with db_pool.acquire() as conn:
         cnt = await conn.fetchval("SELECT COUNT(*) FROM users")
 
-    await update.message.reply_text(f"Bot has been used by {cnt} users")
+    await update.message.reply_text(f"Currently, bot is being used by {cnt} users")
 
 
 async def get_end_of_class(time:List[int], next_needed: bool):
