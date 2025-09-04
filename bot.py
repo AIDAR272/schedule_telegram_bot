@@ -3,6 +3,7 @@ import os
 from typing import List
 from telegram import Bot
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
+from telegram.error import Forbidden
 from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 from greetings_list import greetings
@@ -218,7 +219,7 @@ async def notify_before_class(context):
                         chat_id=user_id,
                         text=f"Boss, you have {value} in 10 minutes"
                     )
-                except telegram.error.Forbidden:
+                except Forbidden:
                     print(f"User {user['first_name']} has blocked the bot")
                 except Exception as e:
                     print(f"Error sending message to {user['first_name']}: {e}")
