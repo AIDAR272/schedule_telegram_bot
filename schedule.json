@@ -1,26 +1,26 @@
 {
   "0" : {
       "9:00" : "Ecology in RED",
-      "13:30" : "Discrete Mathematics in YELLOW"
+      "13:30" : "Discrete Math in YELLOW"
     },
   "1" : {
-      "9:00" :  "Discrete Mathematics in RED",
+      "9:00" :  "Discrete Math in RED",
       "15:30" : "Philosophy in YELLOW"
     },
   "2" : {
       "9:00" : "Ecology in RED",
       "13:00" : "Web & IT in RED",
       "15:00" : "Philosophy in YELLOW",
-      "17:15" : "Programming in LAB"
+      "17:15" : "OOP in LAB"
     },
   "3" : {
-      "9:00" :  "Discrete Mathematics in PURPLE",
-      "11:00" : "Programming in LAB",
+      "9:00" :  "Discrete Math in RED",
+      "11:00" : "OOP in LAB",
       "13:30" : "Web & IT in LAB",
       "15:30" : "Philosophy in YELLOW"
     },
   "4" : {
-      "9:00" : "Programming in RED",
+      "9:00" : "OOP in RED",
       "11:00" : "Ecology in YELLOW",
       "13:30" : "Web & IT in WHITE",
       "17:30" : "PE"
