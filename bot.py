@@ -166,7 +166,7 @@ async def cpu(update, context):
 
     if cache.get("flag").decode() == "True":
         cache.set("flag", "False")
-        await announcement(text)
+        await announcement(text, context)
         return
 
     if cache.get(user_id) is not None and cache.get(user_id).decode() == "True":
