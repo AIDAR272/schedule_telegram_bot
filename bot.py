@@ -271,8 +271,7 @@ async def notify_before_class(context):
 
 def main():
     app = Application.builder().token(TOKEN).build()
-    import asyncio
-    asyncio.run(init_db(app))
+    app.post_init = init_db
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("broadcast", broadcast))
     app.add_handler(CommandHandler("help", help_command))
