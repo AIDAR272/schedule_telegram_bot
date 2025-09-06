@@ -1,5 +1,6 @@
 import json
 import os
+import redis
 from typing import List
 from telegram import Bot
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
@@ -13,9 +14,13 @@ from db import init_db, shutdown_db, get_db_pool
 
 load_dotenv()
 
+admin_id = os.getenv("ADMIN_ID")
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 bot = Bot(token=TOKEN)
 
+redis_url = os.getenv("REDIS_URL")
+cache = redis.from_url(redis_url)
+cache.set("flag", "False")
 
 async def start(update, context):
     user = update.effective_user
@@ -30,6 +35,13 @@ async def start(update, context):
         )
 
     await update.message.reply_text("Hello, my name is Kevin. How can i help you?")
+
+
+async def broadcast(update, context):
+    user_id = update.effective_user.id
+    if user_id == admin_id:
+        cache.set("flag", "True")
+        await bot.send_message(chat_id=admin_id, text="I am all ears, Boss")
 
 
 async def help_command(update, context):
@@ -128,9 +140,41 @@ async def is_thanks(text: str) -> bool:
     return False
 
 
+async def announcement(text: str):
+    db_pool = await get_db_pool()
+    async with db_pool.acquire() as conn:
+        rows = await conn.fetch("SELECT user_id, first_name FROM users")
+    for user in rows:
+        user_id = user['user_id']
+        cache.set(user_id, "True")
+        try:
+            await context.bot.send_message(
+                chat_id=user_id,
+                text=text
+            )
+        except Forbidden:
+            print(f"User {user['first_name']} has blocked the bot")
+        except Exception as e:
+            print(f"Error sending message to {user['first_name']}: {e}")
+
+
 async def cpu(update, context):
+    user_id = update.effective_user.id
+    name = update.effective_user.first_name
     text = update.message.text
     text = text.lower()
+
+    if cache.get("flag").decode() == "True":
+        cache.set("flag", "False")
+        await announcement(text)
+        return
+
+    if cache.get(user_id) is not None and cache.get(user_id).decode() == "True":
+        cache.set(user_id, "False")
+        cache.set(name, text)
+        await update.message.reply_text("Thank you, for your time")
+        return
+
     if await is_greeting(text):
         await update.message.reply_text(f"What's up, Boss!\n\n")
         return
@@ -230,6 +274,7 @@ def main():
     import asyncio
     asyncio.get_event_loop().run_until_complete(init_db(app))
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("broadcast", broadcast))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("info", info))
     app.add_handler(CommandHandler("users", num_users))
