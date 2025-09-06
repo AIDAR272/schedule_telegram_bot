@@ -140,7 +140,7 @@ async def is_thanks(text: str) -> bool:
     return False
 
 
-async def announcement(text: str):
+async def announcement(text: str, context):
     db_pool = await get_db_pool()
     async with db_pool.acquire() as conn:
         rows = await conn.fetch("SELECT user_id, first_name FROM users")
