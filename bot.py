@@ -1,16 +1,15 @@
 import json
 import os
+from datetime import datetime, timedelta, timezone
+
 import redis
-from typing import List
-from telegram import Bot
-from telegram.ext import Application, CommandHandler, MessageHandler, filters
-from telegram.error import Forbidden
-from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
+from telegram import Bot
+from telegram.error import Forbidden
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
+
+from db import get_db_pool, init_db, shutdown_db
 from greetings_list import greetings
-
-from db import init_db, shutdown_db, get_db_pool
-
 
 load_dotenv()
 
@@ -46,22 +45,22 @@ async def broadcast(update, context):
 
 async def help_command(update, context):
     await update.message.reply_text(
-        f"I can answer questions regarding your schedule like:\n"
-        f"What class?\n"
-        f"Which class is next?\n"
-        f"Today's classes?\n"
-        f"What lessons do i have for tomorrow?\n\n"
+        "I can answer questions regarding your schedule like:\n"
+        "What class?\n"
+        "Which class is next?\n"
+        "Today's classes?\n"
+        "What lessons do i have for tomorrow?\n\n"
         
-        f"You can also use these commands:\n"
-        f"/users - how many users are using the bot\n"
-        f"/info - information about the developer"
+        "You can also use these commands:\n"
+        "/users - how many users are using the bot\n"
+        "/info - information about the developer"
     )
 
 
 async def info(update, context):
     await update.message.reply_text(
-        f"This bot was created by Aidar Nasirov.\n"
-        f"Source code: https://github.com/AIDAR272/schedule_telegram_bot"
+        "This bot was created by Aidar Nasirov.\n"
+        "Source code: https://github.com/AIDAR272/schedule_telegram_bot"
     )
 
 
@@ -73,7 +72,7 @@ async def num_users(update, context):
     await update.message.reply_text(f"Currently, bot is being used by {cnt} users")
 
 
-async def get_end_of_class(time:List[int], next_needed: bool):
+async def get_end_of_class(time:list[int], next_needed: bool) -> list[int]:
     if next_needed:
         return time
 
@@ -87,13 +86,14 @@ async def get_end_of_class(time:List[int], next_needed: bool):
     return time
 
 
-async def get_classes_for_day(weekday:int, day:str):
-    if weekday == 7: weekday = 0
+async def get_classes_for_day(weekday:int, day:str) -> str:
+    if weekday == 7:
+        weekday = 0
     weekday = str(weekday)
     if weekday == '5' or weekday == '6':
-        return f"You have no classes, Boss"
+        return "You have no classes, Boss"
 
-    with open("schedule.json", 'r') as f:
+    with open("schedule.json") as f:
         schedule = json.load(f)
         schedule = schedule[weekday]
         classes = [f"{day} you have: {len(schedule)} classes"]
@@ -103,7 +103,7 @@ async def get_classes_for_day(weekday:int, day:str):
         return "\n\n".join(classes)
 
 
-async def is_next_class(time:List[int]) -> bool:
+async def is_next_class(time:list[int]) -> bool:
     now = datetime.now(timezone(timedelta(hours=6)))
     current_time = [now.hour, now.minute]
     if time[0] > current_time[0] or time[0] == current_time[0] and time[1] >= current_time[1]:
@@ -111,7 +111,7 @@ async def is_next_class(time:List[int]) -> bool:
     return False
 
 
-async def time_left(time: List[int]):
+async def time_left(time: list[int]) -> list[int]:
     now = datetime.now(timezone(timedelta(hours=6)))
     current_time = [now.hour, now.minute]
     in_what_time = []
@@ -140,7 +140,7 @@ async def is_thanks(text: str) -> bool:
     return False
 
 
-async def announcement(text: str, context):
+async def announcement(text: str, context) -> None:
     db_pool = await get_db_pool()
     async with db_pool.acquire() as conn:
         rows = await conn.fetch("SELECT user_id, first_name FROM users")
@@ -158,13 +158,13 @@ async def announcement(text: str, context):
             print(f"Error sending message to {user['first_name']}: {e}")
 
 
-async def cpu(update, context):
+async def cpu(update, context) -> None:
     user_id = update.effective_user.id
     name = update.effective_user.first_name
     text = update.message.text
     text = text.lower()
 
-    if cache.get("flag").decode() == "True":
+    if str(user_id) == admin_id and cache.get("flag").decode() == "True":
         cache.set("flag", "False")
         await announcement(text, context)
         return
@@ -176,11 +176,11 @@ async def cpu(update, context):
         return
 
     if await is_greeting(text):
-        await update.message.reply_text(f"What's up, Boss!\n\n")
+        await update.message.reply_text("What's up, Boss!")
         return
 
     if await is_thanks(text):
-        await update.message.reply_text(f"Sure, It's my job 😎!")
+        await update.message.reply_text("Sure, It's my job 😎!")
         return
 
     if "lesson" not in text and "class" not in text:
@@ -205,10 +205,10 @@ async def cpu(update, context):
 
         weekday = str(weekday)
         if weekday == '5' or weekday == '6':
-            await update.message.reply_text(f"You have no classes, Boss")
+            await update.message.reply_text("You have no classes, Boss")
             return
 
-        with open("schedule.json", 'r') as f:
+        with open("schedule.json") as f:
             schedule = json.load(f)
             subject = ''
             flag = 0
@@ -230,7 +230,7 @@ async def cpu(update, context):
 
 
             if subject == '':
-                await update.message.reply_text(f"You have no other classes for today, Boss")
+                await update.message.reply_text("You have no other classes for today, Boss")
                 return
 
             if not flag:
@@ -241,8 +241,8 @@ async def cpu(update, context):
             await update.message.reply_text(text)
 
 
-async def notify_before_class(context):
-    with open("schedule.json", 'r') as f:
+async def notify_before_class(context) -> None:
+    with open("schedule.json") as f:
         schedule = json.load(f)
 
     now = datetime.now(timezone(timedelta(hours=6)))
