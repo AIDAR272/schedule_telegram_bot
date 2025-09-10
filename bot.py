@@ -198,7 +198,6 @@ async def cpu(update, context) -> None:
             await update.message.reply_text(await get_classes_for_day(weekday, "Today"))
             return
 
-
         next_needed = False
         if "next" in text:
             next_needed = True
@@ -227,7 +226,6 @@ async def cpu(update, context) -> None:
                         subject = value
                         flag = 1
                         break
-
 
             if subject == '':
                 await update.message.reply_text("You have no other classes for today, Boss")
