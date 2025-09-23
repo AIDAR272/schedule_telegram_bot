@@ -93,22 +93,26 @@ async def get_end_of_class(time:list[int], next_needed: bool, is_long: bool) -> 
     return time
 
 
-async def get_classes_for_day(weekday:int, day:str, cohort: str) -> str:
+async def get_classes_for_day(weekday:int, day:str, cohort: str, user_id: int) -> str:
     weekday %= 7
     weekday = str(weekday)
     if weekday == '5' or weekday == '6':
         return "You have no classes, Boss"
 
-    if cohort is None:
-        return "Who are you?"
-
     with open("schedule.json") as f:
         schedule = json.load(f)
         schedule = schedule[cohort][weekday]
-        classes = [f"{day} you have: {len(schedule)} classes"]
+        classes = []
         for key, value in schedule.items():
+            cached_value = cache.get("CA"+str(user_id))
+            if (cohort == "CM" and
+                    value[:8] == "Elective" and
+                    cached_value and
+                    cached_value.decode() == "False"):
+                continue
             classes.append(f"{value} at {key}")
 
+        classes.insert(0, f"{day} you have: {len(classes)} classes")
         return "\n\n".join(classes)
 
 
@@ -184,19 +188,23 @@ async def process_message(update, context) -> None:
             one_time_keyboard=True
         )
         await update.message.reply_text("Are you taking Computer Animation with Nelson Max?", reply_markup=reply_markup)
+        return
 
     if text == "CS":
         key = "cohort" + str(user_id)
         cache.set(key, "CS")
         await update.message.reply_text("Your major is CS, if you want to change it, type 'CM'")
+        return
 
     if text == "Yes, I am taking Computer Animation":
         cache.set("CA" + str(user_id), "True")
         await update.message.reply_text("Great, Thank you for letting me know")
+        return
 
     if text == "No, I am not taking Computer Animation":
         cache.set("CA" + str(user_id), "False")
         await update.message.reply_text("Great, Thank you for letting me know")
+        return
 
     text = text.lower()
 
@@ -233,11 +241,11 @@ async def process_message(update, context) -> None:
             return
 
         if "tomorrow" in text:
-            await update.message.reply_text(await get_classes_for_day(weekday + 1, "Tomorrow", cohort))
+            await update.message.reply_text(await get_classes_for_day(weekday + 1, "Tomorrow", cohort, user_id))
             return
 
         if "today" in text:
-            await update.message.reply_text(await get_classes_for_day(weekday, "Today", cohort))
+            await update.message.reply_text(await get_classes_for_day(weekday, "Today", cohort, user_id))
             return
 
         next_needed = False
