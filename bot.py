@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 import redis
 from dotenv import load_dotenv
-from telegram import Bot
+from telegram import Bot, KeyboardButton, ReplyKeyboardMarkup
 from telegram.error import Forbidden
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 
@@ -33,8 +33,14 @@ async def start(update, context):
             user_id, first_name, username
         )
 
-    await update.message.reply_text("Hello, my name is Kevin. How can i help you?")
-
+    await update.message.reply_text("Hello, my name is Kevin, I was build to help you with your schedule")
+    keyboard = [[KeyboardButton("CS"), KeyboardButton("CM")]]
+    reply_markup = ReplyKeyboardMarkup(
+        keyboard,
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
+    await update.message.reply_text("What is your major?", reply_markup=reply_markup)
 
 async def broadcast(update, context):
     user_id = update.effective_user.id
@@ -72,30 +78,33 @@ async def num_users(update, context):
     await update.message.reply_text(f"Currently, bot is being used by {cnt} users")
 
 
-async def get_end_of_class(time:list[int], next_needed: bool) -> list[int]:
+async def get_end_of_class(time:list[int], next_needed: bool, is_long: bool) -> list[int]:
     if next_needed:
         return time
 
-    time[0] += 1
-    if time[1] == 30:
-        time[0] += 1
-        time[1] = 0
+    if is_long:
+        time[0] += 3
     else:
+        time[0] += 1
         time[1] += 30
+        time[0] += time[1] // 60
+        time[1] %= 60
 
     return time
 
 
-async def get_classes_for_day(weekday:int, day:str) -> str:
-    if weekday == 7:
-        weekday = 0
+async def get_classes_for_day(weekday:int, day:str, cohort: str) -> str:
+    weekday %= 7
     weekday = str(weekday)
     if weekday == '5' or weekday == '6':
         return "You have no classes, Boss"
 
+    if cohort is None:
+        return "Who are you?"
+
     with open("schedule.json") as f:
         schedule = json.load(f)
-        schedule = schedule[weekday]
+        schedule = schedule[cohort][weekday]
         classes = [f"{day} you have: {len(schedule)} classes"]
         for key, value in schedule.items():
             classes.append(f"{value} at {key}")
@@ -158,10 +167,37 @@ async def announcement(text: str, context) -> None:
             print(f"Error sending message to {user['first_name']}: {e}")
 
 
-async def cpu(update, context) -> None:
+async def process_message(update, context) -> None:
     user_id = update.effective_user.id
     name = update.effective_user.first_name
     text = update.message.text
+
+    if text == "CM":
+        key = "cohort" + str(user_id)
+        cache.set(key, "CM")
+        await update.message.reply_text("Your major is CM, if you want to change it, type 'CS'")
+
+        keyboard = [[KeyboardButton("Yes, I am taking Computer Animation")], [KeyboardButton("No, I am not taking Computer Animation")]]
+        reply_markup = ReplyKeyboardMarkup(
+            keyboard,
+            resize_keyboard=True,
+            one_time_keyboard=True
+        )
+        await update.message.reply_text("Are you taking Computer Animation with Nelson Max?", reply_markup=reply_markup)
+
+    if text == "CS":
+        key = "cohort" + str(user_id)
+        cache.set(key, "CS")
+        await update.message.reply_text("Your major is CS, if you want to change it, type 'CM'")
+
+    if text == "Yes, I am taking Computer Animation":
+        cache.set("CA" + str(user_id), "True")
+        await update.message.reply_text("Great, Thank you for letting me know")
+
+    if text == "No, I am not taking Computer Animation":
+        cache.set("CA" + str(user_id), "False")
+        await update.message.reply_text("Great, Thank you for letting me know")
+
     text = text.lower()
 
     if str(user_id) == admin_id and cache.get("flag").decode() == "True":
@@ -190,12 +226,18 @@ async def cpu(update, context) -> None:
         )
     else:
         weekday = datetime.now(timezone(timedelta(hours=6))).weekday()
+        cohort = cache.get("cohort" + str(user_id)).decode()
+
+        if cohort is None:
+            await update.message.reply_text("Who are you?")
+            return
+
         if "tomorrow" in text:
-            await update.message.reply_text(await get_classes_for_day(weekday + 1, "Tomorrow"))
+            await update.message.reply_text(await get_classes_for_day(weekday + 1, "Tomorrow", cohort))
             return
 
         if "today" in text:
-            await update.message.reply_text(await get_classes_for_day(weekday, "Today"))
+            await update.message.reply_text(await get_classes_for_day(weekday, "Today", cohort))
             return
 
         next_needed = False
@@ -207,11 +249,11 @@ async def cpu(update, context) -> None:
             await update.message.reply_text("You have no classes, Boss")
             return
 
-        with open("schedule.json") as f:
+        with (open("schedule.json") as f):
             schedule = json.load(f)
             subject = ''
             flag = 0
-            for key, value in schedule[weekday].items():
+            for key, value in schedule[cohort][weekday].items():
                 time = key.split(":")
                 time = [int(x) for x in time]
                 if await is_next_class(time):
@@ -220,7 +262,13 @@ async def cpu(update, context) -> None:
                     break
 
                 else:
-                    time = await get_end_of_class(time, next_needed)
+                    is_long = False
+                    if (weekday == '1' and value == "Media Production in WHITE" or
+                        weekday == '3' and value == "Creative Writing in WHITE" or
+                            weekday == '4' and value == "Communication in CA in GREEN"):
+                        is_long = True
+
+                    time = await get_end_of_class(time, next_needed, is_long)
                     if await is_next_class(time):
                         in_what_time = await time_left(time)
                         subject = value
@@ -245,26 +293,36 @@ async def notify_before_class(context) -> None:
 
     now = datetime.now(timezone(timedelta(hours=6)))
     weekday = now.weekday()
-    for key, value in schedule[str(weekday)].items():
-        class_hour, class_minute = map(int, key.split(":"))
-        class_dt = now.replace(hour=class_hour, minute=class_minute, second=0, microsecond=0)
+    for cohort in ["CS", "CM"]:
+        for key, value in schedule[cohort][str(weekday)].items():
+            class_hour, class_minute = map(int, key.split(":"))
+            class_dt = now.replace(hour=class_hour, minute=class_minute, second=0, microsecond=0)
 
-        diff = (class_dt - now).total_seconds()
-        if 540 <= diff < 600:
-            db_pool = await get_db_pool()
-            async with db_pool.acquire() as conn:
-                rows = await conn.fetch("SELECT user_id, first_name FROM users")
-            for user in rows:
-                user_id = user['user_id']
-                try:
-                    await context.bot.send_message(
-                        chat_id=user_id,
-                        text=f"Boss, you have {value} in 10 minutes"
-                    )
-                except Forbidden:
-                    print(f"User {user['first_name']} has blocked the bot")
-                except Exception as e:
-                    print(f"Error sending message to {user['first_name']}: {e}")
+            diff = (class_dt - now).total_seconds()
+            if 540 <= diff < 600:
+                db_pool = await get_db_pool()
+                async with db_pool.acquire() as conn:
+                    rows = await conn.fetch("SELECT user_id, first_name FROM users")
+                for user in rows:
+                    user_id = user['user_id']
+
+                    cached_cohort = cache.get("cohort" + str(user_id))
+                    if cached_cohort and cached_cohort.decode() == cohort:
+                        cached_value = cache.get("CA" + str(user_id))
+                        if (cohort == "CM" and
+                            value[:8] == "Elective" and
+                            cached_value and
+                            cached_value.decode() == "False"):
+                            continue
+                        try:
+                            await context.bot.send_message(
+                                chat_id=user_id,
+                                text=f"Boss, you have {value} in 10 minutes"
+                            )
+                        except Forbidden:
+                            print(f"User {user['first_name']} has blocked the bot")
+                        except Exception as e:
+                            print(f"Error sending message to {user['first_name']}: {e}")
 
 
 def main():
@@ -275,7 +333,7 @@ def main():
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("info", info))
     app.add_handler(CommandHandler("users", num_users))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, cpu))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, process_message))
 
     app.job_queue.run_repeating(notify_before_class, interval=60, first=0)
     app.post_shutdown = shutdown_db
@@ -285,3 +343,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
