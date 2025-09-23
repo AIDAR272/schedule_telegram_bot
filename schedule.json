@@ -1,30 +1,62 @@
 {
-  "0" : {
-      "9:00" : "Ecology in RED",
-      "13:30" : "Discrete Math in YELLOW"
+  "CS": {
+    "0": {
+      "9:00": "Ecology in RED",
+      "13:30": "Discrete Math in YELLOW"
     },
-  "1" : {
-      "9:00" :  "Discrete Math in RED",
-      "15:30" : "Philosophy in YELLOW"
+    "1": {
+      "9:00": "Discrete Math in RED",
+      "15:30": "Philosophy in YELLOW"
     },
-  "2" : {
-      "9:00" : "Ecology in WHITE",
-      "13:00" : "Web & IT in RED",
-      "15:00" : "Philosophy in YELLOW",
-      "17:15" : "OOP in LAB"
+    "2": {
+      "9:00": "Ecology in WHITE",
+      "13:00": "Web & IT in RED",
+      "15:00": "Philosophy in YELLOW",
+      "17:15": "OOP in LAB"
     },
-  "3" : {
-      "9:00" :  "Discrete Math in RED",
-      "11:00" : "OOP in LAB",
-      "13:30" : "Web & IT in LAB",
-      "15:30" : "Philosophy in YELLOW"
+    "3": {
+      "9:00": "Discrete Math in RED",
+      "11:00": "OOP in LAB",
+      "13:30": "Web & IT in LAB",
+      "15:30": "Philosophy in YELLOW"
     },
-  "4" : {
-      "9:00" : "OOP in RED",
-      "11:00" : "Ecology in YELLOW",
-      "13:30" : "Web & IT in WHITE",
-      "17:30" : "PE"
+    "4": {
+      "9:00": "OOP in RED",
+      "11:00": "Ecology in YELLOW",
+      "13:30": "Web & IT in WHITE",
+      "17:30": "PE"
     },
-  "5" : {},
-  "6" : {}
+    "5": {},
+    "6": {}
+  },
+  "CM": {
+    "0": {
+      "9:00": "Anthropology in YELLOW",
+      "13:00": "Media Production in PURPLE",
+      "15:00" : "Elective: Computer Animation in PURPLE"
+    },
+    "1": {
+      "9:00": "Media Production in WHITE",
+      "13:30": "Creative Writing in RED",
+      "15:30": "Philosophy in YELLOW"
+    },
+    "2": {
+      "9:00": "Elective: Computer Animation in PURPLE",
+      "10:45": "Anthropology in WHITE",
+      "13:30": "Microeconomics",
+      "15:00": "Philosophy in YELLOW"
+    },
+    "3": {
+      "9:00": "Creative Writing in WHITE",
+      "13:30": "Microeconomics",
+      "15:30": "Philosophy in YELLOW"
+    },
+    "4": {
+      "9:00": "Anthropology in YELLOW",
+      "11:00": "Microeconomics",
+      "15:00": "Communication in CA in GREEN"
+    },
+    "5": {},
+    "6": {}
+  }
 }
