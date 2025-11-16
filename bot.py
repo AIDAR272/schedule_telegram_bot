@@ -33,7 +33,7 @@ async def start(update, context):
             user_id, first_name, username
         )
 
-    await update.message.reply_text("Hello, my name is Kevin for test, I was build to help you with your schedule")
+    await update.message.reply_text("Hello, my name is Kevin, I was build for testing")
     keyboard = [[KeyboardButton("CS"), KeyboardButton("CM")]]
     reply_markup = ReplyKeyboardMarkup(
         keyboard,
