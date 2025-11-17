@@ -29,9 +29,11 @@ async def start(update, context):
     username = user.username if user.username else None
 
     with SessionLocal() as session:
-        new_user = User(user_id=user_id, first_name=first_name, username=username)
-        session.add(new_user)
-        session.commit()
+        existing_user = session.query(User).filter(User.user_id==user_id).first()
+        if not existing_user:
+            new_user = User(user_id=user_id, first_name=first_name, username=username)
+            session.add(new_user)
+            session.commit()
 
     await update.message.reply_text("Hello, my name is Kevin, I was build for testing")
     keyboard = [[KeyboardButton("CS"), KeyboardButton("CM")]]
