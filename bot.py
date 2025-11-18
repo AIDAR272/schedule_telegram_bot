@@ -8,12 +8,13 @@ from telegram.error import Forbidden
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from sqlalchemy import func
 
-from database import SessionLocal
+from database import SessionLocal, Base, engine
 from models import User
 from greetings_list import greetings
 
 load_dotenv()
 
+Base.metadata.create_all(engine)
 admin_id = os.getenv("ADMIN_ID")
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 bot = Bot(token=TOKEN)
