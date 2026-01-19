@@ -182,30 +182,12 @@ async def process_message(update, context) -> None:
         key = "cohort" + str(user_id)
         cache.set(key, "CM")
         await update.message.reply_text("Your major is CM, if you want to change it, type 'CS'")
-
-        keyboard = [[KeyboardButton("Yes, I am taking Computer Animation")], [KeyboardButton("No, I am not taking Computer Animation")]]
-        reply_markup = ReplyKeyboardMarkup(
-            keyboard,
-            resize_keyboard=True,
-            one_time_keyboard=True
-        )
-        await update.message.reply_text("Are you taking Computer Animation with Nelson Max?", reply_markup=reply_markup)
         return
 
     if text == "CS":
         key = "cohort" + str(user_id)
         cache.set(key, "CS")
         await update.message.reply_text("Your major is CS, if you want to change it, type 'CM'")
-        return
-
-    if text == "Yes, I am taking Computer Animation":
-        cache.set("CA" + str(user_id), "True")
-        await update.message.reply_text("Great, Thank you for letting me know")
-        return
-
-    if text == "No, I am not taking Computer Animation":
-        cache.set("CA" + str(user_id), "False")
-        await update.message.reply_text("Great, Thank you for letting me know")
         return
 
     text = text.lower()
@@ -273,9 +255,8 @@ async def process_message(update, context) -> None:
 
                 else:
                     is_long = False
-                    if (weekday == '1' and value == "Media Production in WHITE" or
-                        weekday == '3' and value == "Creative Writing in WHITE" or
-                            weekday == '4' and value == "Communication in CA in GREEN"):
+                    if (weekday == '0' and value == "Media Production Radio in Creative Studio" or
+                        weekday == '4' and value == "Database Management Systems in GREEN"):
                         is_long = True
 
                     time = await get_end_of_class(time, next_needed, is_long)

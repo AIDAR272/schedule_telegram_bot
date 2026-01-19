@@ -1,60 +1,58 @@
 {
   "CS": {
     "0": {
-      "9:00": "Ecology in RED",
-      "13:30": "Discrete Math in YELLOW"
+      "9:00": "Linear Algebra in YELLOW",
+      "11:00": "Digital Logic & Design"
     },
     "1": {
-      "9:00": "Discrete Math in RED",
-      "15:30": "Philosophy in YELLOW"
+      "9:00": "Linear Algebra in PURPLE",
+      "11:30": "Data Structures & Algorithms in RED",
+      "15:30": "PE"
     },
     "2": {
-      "9:00": "Ecology in WHITE",
-      "13:00": "Web & IT in RED",
-      "15:00": "Philosophy in YELLOW",
-      "17:15": "OOP in LAB"
+      "11:00": "Digital Logic & Design"
     },
     "3": {
-      "9:00": "Discrete Math in RED",
-      "11:00": "OOP in LAB",
-      "13:30": "Web & IT in LAB",
-      "15:30": "Philosophy in YELLOW"
+      "9:00": "Linear Algebra in YELLOW",
+      "11:00": "Database Management Systems in PURPLE",
+      "13:30": "Data Structures & Algorithms in RED"
     },
     "4": {
-      "9:00": "OOP in RED",
-      "11:00": "Ecology in YELLOW",
-      "13:30": "Web & IT in WHITE",
-      "17:30": "PE"
+      "9:00": "Digital Logic & Design",
+      "11:00": "Data Structures & Algorithms in RED",
+      "14:30": "Database Management Systems in GREEN"
     },
     "5": {},
     "6": {}
   },
   "CM": {
     "0": {
-      "9:00": "Anthropology in YELLOW",
-      "13:00": "Media Production in PURPLE",
-      "15:00" : "Elective: Computer Animation in PURPLE"
+      "9:00": "Media Production Radio in Creative Studio",
+      "13:00": "Audiences for CM in WHITE",
+      "15:00" : "History 2 in RED"
     },
     "1": {
-      "9:00": "Media Production in WHITE",
-      "13:30": "Creative Writing in RED",
-      "15:30": "Philosophy in YELLOW"
+      "9:00": "Virtual Design",
+      "11:00": "Intro to Microeconomics in Creative Studio",
+      "13:30": "Statistics: Introduction in YELLOW",
+      "17:15": "PE"
     },
     "2": {
-      "9:00": "Elective: Computer Animation in PURPLE",
-      "10:45": "Anthropology in WHITE",
-      "13:00": "Microeconomics",
-      "15:00": "Philosophy in YELLOW"
+      "9:00": "Virtual Design",
+      "11:00": "Intro to Microeconomics in Creative Studio",
+      "13:30": "Statistics: Introduction in YELLOW",
+      "15:15": "History 2 in RED"
     },
     "3": {
-      "9:00": "Creative Writing in WHITE",
-      "13:30": "Microeconomics",
-      "15:30": "Philosophy in YELLOW"
+      "9:00": "Virtual Design",
+      "11:00": "Intro to Microeconomics in Creative Studio",
+      "13:30": "Statistics: Introduction in YELLOW",
+      "15:30": "Audiences for CM in WHITE"
     },
     "4": {
-      "9:00": "Anthropology in YELLOW",
-      "11:00": "Microeconomics",
-      "15:00": "Communication in CA in GREEN"
+      "9:00": "Media Production Radio in Creative Studio",
+      "11:00": "History 2 in Creative Studio",
+      "13:30": "Audiences for CM in WHITE"
     },
     "5": {},
     "6": {}
