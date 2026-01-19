@@ -1,37 +1,40 @@
 import json
 import os
-from datetime import datetime, timedelta, timezone
-
 import redis
+from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from telegram import Bot, KeyboardButton, ReplyKeyboardMarkup
 from telegram.error import Forbidden
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
+from sqlalchemy import func
 
-from db import get_db_pool, init_db, shutdown_db
+from database import SessionLocal, Base, engine
+from models import User
 from greetings_list import greetings
 
 load_dotenv()
 
+Base.metadata.create_all(engine)
 admin_id = os.getenv("ADMIN_ID")
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 bot = Bot(token=TOKEN)
-
 redis_url = os.getenv("REDIS_URL")
 cache = redis.from_url(redis_url)
 cache.set("flag", "False")
+
 
 async def start(update, context):
     user = update.effective_user
     user_id = user.id
     first_name = user.first_name
     username = user.username if user.username else None
-    db_pool = await get_db_pool()
-    async with db_pool.acquire() as conn:
-        await conn.execute(
-            "INSERT INTO users (user_id, first_name, username) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
-            user_id, first_name, username
-        )
+
+    with SessionLocal() as session:
+        existing_user = session.query(User).filter(User.user_id==user_id).first()
+        if not existing_user:
+            new_user = User(user_id=user_id, first_name=first_name, username=username)
+            session.add(new_user)
+            session.commit()
 
     await update.message.reply_text("Hello, I am Kevin, I was build to help you with your schedule")
     keyboard = [[KeyboardButton("CS"), KeyboardButton("CM")]]
@@ -41,6 +44,7 @@ async def start(update, context):
         one_time_keyboard=True
     )
     await update.message.reply_text("What is your major?", reply_markup=reply_markup)
+
 
 async def broadcast(update, context):
     user_id = update.effective_user.id
@@ -71,9 +75,8 @@ async def info(update, context):
 
 
 async def num_users(update, context):
-    db_pool = await get_db_pool()
-    async with db_pool.acquire() as conn:
-        cnt = await conn.fetchval("SELECT COUNT(*) FROM users")
+    with SessionLocal() as session:
+        cnt = session.query(func.count(User.user_id)).scalar()
 
     await update.message.reply_text(f"Currently, bot is being used by {cnt} users")
 
@@ -154,11 +157,10 @@ async def is_thanks(text: str) -> bool:
 
 
 async def announcement(text: str, context) -> None:
-    db_pool = await get_db_pool()
-    async with db_pool.acquire() as conn:
-        rows = await conn.fetch("SELECT user_id, first_name FROM users")
-    for user in rows:
-        user_id = user['user_id']
+    with SessionLocal() as session:
+        rows = session.query(User.user_id, User.first_name).all()
+
+    for user_id, first_name in rows:
         cache.set(user_id, "True")
         try:
             await context.bot.send_message(
@@ -166,9 +168,9 @@ async def announcement(text: str, context) -> None:
                 text=text
             )
         except Forbidden:
-            print(f"User {user['first_name']} has blocked the bot")
+            print(f"User {first_name} has blocked the bot")
         except Exception as e:
-            print(f"Error sending message to {user['first_name']}: {e}")
+            print(f"Error sending message to {first_name}: {e}")
 
 
 async def process_message(update, context) -> None:
@@ -308,12 +310,10 @@ async def notify_before_class(context) -> None:
 
             diff = (class_dt - now).total_seconds()
             if 540 <= diff < 600:
-                db_pool = await get_db_pool()
-                async with db_pool.acquire() as conn:
-                    rows = await conn.fetch("SELECT user_id, first_name FROM users")
-                for user in rows:
-                    user_id = user['user_id']
+                with SessionLocal() as session:
+                    rows = session.query(User.user_id, User.first_name)
 
+                for user_id, first_name in rows:
                     cached_cohort = cache.get("cohort" + str(user_id))
                     if cached_cohort and cached_cohort.decode() == cohort:
                         cached_value = cache.get("CA" + str(user_id))
@@ -328,14 +328,13 @@ async def notify_before_class(context) -> None:
                                 text=f"Boss, you have {value} in 10 minutes"
                             )
                         except Forbidden:
-                            print(f"User {user['first_name']} has blocked the bot")
+                            print(f"User {first_name} has blocked the bot")
                         except Exception as e:
-                            print(f"Error sending message to {user['first_name']}: {e}")
+                            print(f"Error sending message to {first_name}: {e}")
 
 
 def main():
     app = Application.builder().token(TOKEN).build()
-    app.post_init = init_db
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("broadcast", broadcast))
     app.add_handler(CommandHandler("help", help_command))
@@ -344,7 +343,6 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, process_message))
 
     app.job_queue.run_repeating(notify_before_class, interval=60, first=0)
-    app.post_shutdown = shutdown_db
     print("Bot is running")
     app.run_polling()
 
