@@ -5,3 +5,5 @@ redis
 sqlalchemy
 psycopg2-binary
 redis
+fastapi
+alembic

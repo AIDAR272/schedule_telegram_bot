@@ -8,8 +8,8 @@ from telegram.error import Forbidden
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from sqlalchemy import func
 
-from database import SessionLocal, Base, engine
-from models import User
+from app.database.database import SessionLocal, Base, engine
+from app.models.models import User, Event
 from greetings_list import greetings
 
 load_dotenv()
@@ -102,7 +102,7 @@ async def get_classes_for_day(weekday:int, day:str, cohort: str, user_id: int) -
     if weekday == '5' or weekday == '6':
         return "You have no classes, Boss"
 
-    with open("schedule.json") as f:
+    with open("../schedule.json") as f:
         schedule = json.load(f)
         schedule = schedule[cohort][weekday]
         classes = []
@@ -259,7 +259,7 @@ async def process_message(update, context) -> None:
             await update.message.reply_text("You have no classes, Boss")
             return
 
-        with (open("schedule.json") as f):
+        with (open("../schedule.json") as f):
             schedule = json.load(f)
             subject = ''
             flag = 0
@@ -298,7 +298,7 @@ async def process_message(update, context) -> None:
 
 
 async def notify_before_class(context) -> None:
-    with open("schedule.json") as f:
+    with open("../schedule.json") as f:
         schedule = json.load(f)
 
     now = datetime.now(timezone(timedelta(hours=6)))
@@ -333,6 +333,35 @@ async def notify_before_class(context) -> None:
                             print(f"Error sending message to {first_name}: {e}")
 
 
+async def notify_upcoming_events(context):
+    now = datetime.now(timezone(timedelta(hours=6)))
+    notify_window_start = now + timedelta(seconds=540)
+    notify_window_end = now + timedelta(seconds=600)
+
+    with SessionLocal() as session:
+        events = (
+            session.query(Event, User)
+            .join(User, Event.user_id == User.user_id)
+            .filter(Event.status == "active")
+            .filter(Event.start_datetime >= notify_window_start)
+            .filter(Event.start_datetime < notify_window_end)
+            .all()
+        )
+
+        for event, user in events:
+            try:
+                await context.bot.send_message(
+                    chat_id=user.user_id,
+                    text=f"Boss, your event '{event.title}' starts in 10 minutes!"
+                )
+                event.status = "completed"
+            except Forbidden:
+                print(f"User {user.first_name} has blocked the bot")
+            except Exception as e:
+                print(f"Error sending message to {user.first_name}: {e}")
+        session.commit()
+
+
 def main():
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
@@ -343,6 +372,7 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, process_message))
 
     app.job_queue.run_repeating(notify_before_class, interval=60, first=0)
+    app.job_queue.run_repeating(notify_upcoming_events, interval=60, first=0)
     print("Bot is running")
     app.run_polling()
 
