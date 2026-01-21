@@ -36,7 +36,7 @@ async def start(update, context):
             session.add(new_user)
             session.commit()
 
-    await update.message.reply_text("Hello, my name is Kevin, I was build for testing")
+    await update.message.reply_text("Hello, I am Kevin, I was build to help you with your schedule")
     keyboard = [[KeyboardButton("CS"), KeyboardButton("CM")]]
     reply_markup = ReplyKeyboardMarkup(
         keyboard,
