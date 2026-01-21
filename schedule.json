@@ -2,7 +2,8 @@
   "CS": {
     "0": {
       "9:00": "Linear Algebra in YELLOW",
-      "11:00": "Digital Logic & Design"
+      "13:30": "Digital Logic & Design",
+      "15:30": "Data Structures & Algorithms in RED"
     },
     "1": {
       "9:00": "Linear Algebra in PURPLE",
@@ -10,16 +11,15 @@
       "15:30": "PE"
     },
     "2": {
-      "11:00": "Digital Logic & Design"
+      "13:30": "Digital Logic & Design"
     },
     "3": {
       "9:00": "Linear Algebra in YELLOW",
       "11:00": "Database Management Systems in PURPLE",
-      "13:30": "Data Structures & Algorithms in RED"
+      "13:30": "Data Structures & Algorithms in RED",
+      "15:30": "Digital Logic & Design"
     },
     "4": {
-      "9:00": "Digital Logic & Design",
-      "11:00": "Data Structures & Algorithms in RED",
       "14:30": "Database Management Systems in GREEN"
     },
     "5": {},
@@ -29,17 +29,18 @@
     "0": {
       "9:00": "Media Production Radio in Creative Studio",
       "13:00": "Audiences for CM in WHITE",
-      "15:00" : "History 2 in RED"
+      "15:00" : "History 2 in PURPLE"
     },
     "1": {
       "9:00": "Virtual Design",
       "11:00": "Intro to Microeconomics in Creative Studio",
       "13:30": "Statistics: Introduction in YELLOW",
+      "15:30": "Audiences for CM in WHITE",
       "17:15": "PE"
     },
     "2": {
       "9:00": "Virtual Design",
-      "11:00": "Intro to Microeconomics in Creative Studio",
+      "11:00": "Intro to Microeconomics in RED",
       "13:30": "Statistics: Introduction in YELLOW",
       "15:15": "History 2 in RED"
     },
@@ -51,8 +52,7 @@
     },
     "4": {
       "9:00": "Media Production Radio in Creative Studio",
-      "11:00": "History 2 in Creative Studio",
-      "13:30": "Audiences for CM in WHITE"
+      "11:00": "History 2 in WHITE"
     },
     "5": {},
     "6": {}
