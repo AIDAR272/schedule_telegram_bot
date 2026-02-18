@@ -1,5 +1,5 @@
 from http.client import HTTPException
-
+from datetime import datetime
 from sqlalchemy.orm import Session
 from app.models.models import Event, User
 from app.schemas.event_schemas import EventCreate, EventUpdate
@@ -11,8 +11,12 @@ class EventRepository:
     def get_user_by_id(self, user_id: int):
         return self.db.query(User).filter(User.user_id == user_id).first()
 
+
     def create_event(self, event_dto: EventCreate) -> Event:
-        event = Event(**event_dto.model_dump())
+        data = event_dto.model_dump()
+        data['date'] = datetime.strptime(event_dto.date, "%d.%m.%Y").date()
+        data['time'] = datetime.strptime(event_dto.time, "%H:%M").time()
+        event = Event(**data)
         self.db.add(event)
         self.db.commit()
         self.db.refresh(event)

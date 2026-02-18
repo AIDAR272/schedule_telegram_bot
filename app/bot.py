@@ -46,6 +46,10 @@ async def start(update, context):
     await update.message.reply_text("What is your major?", reply_markup=reply_markup)
 
 
+def add_event(update, context):
+    pass
+
+
 async def broadcast(update, context):
     user_id = update.effective_user.id
     if str(user_id) == admin_id:
@@ -369,6 +373,7 @@ def main():
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("info", info))
     app.add_handler(CommandHandler("users", num_users))
+    app.add_handler(CommandHandler("remindme", add_event))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, process_message))
 
     app.job_queue.run_repeating(notify_before_class, interval=60, first=0)
